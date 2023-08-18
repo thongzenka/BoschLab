@@ -112,7 +112,7 @@ Discarded input sections
  .data          0x0000000000000000        0x0 ./Core/Src/stm32f4xx_hal_msp.o
  .bss           0x0000000000000000        0x0 ./Core/Src/stm32f4xx_hal_msp.o
  .text.HAL_CAN_MspDeInit
-                0x0000000000000000       0xa8 ./Core/Src/stm32f4xx_hal_msp.o
+                0x0000000000000000       0xa4 ./Core/Src/stm32f4xx_hal_msp.o
  .debug_macro   0x0000000000000000      0xa78 ./Core/Src/stm32f4xx_hal_msp.o
  .debug_macro   0x0000000000000000      0x295 ./Core/Src/stm32f4xx_hal_msp.o
  .debug_macro   0x0000000000000000       0x2e ./Core/Src/stm32f4xx_hal_msp.o
@@ -2336,27 +2336,27 @@ LOAD a:/stm32/stm32/stm32cubeide_1.11.2/stm32cubeide/plugins/com.st.stm32cube.id
  .text.HAL_CAN_RxFifo1MsgPendingCallback
                 0x000000000800051c       0x38 ./Core/Src/main.o
                 0x000000000800051c                HAL_CAN_RxFifo1MsgPendingCallback
- .text.main     0x0000000008000554      0x180 ./Core/Src/main.o
+ .text.main     0x0000000008000554      0x17c ./Core/Src/main.o
                 0x0000000008000554                main
  .text.SystemClock_Config
-                0x00000000080006d4       0xbc ./Core/Src/main.o
-                0x00000000080006d4                SystemClock_Config
+                0x00000000080006d0       0xbc ./Core/Src/main.o
+                0x00000000080006d0                SystemClock_Config
  .text.MX_CAN1_Init
-                0x0000000008000790       0xa4 ./Core/Src/main.o
+                0x000000000800078c       0xa8 ./Core/Src/main.o
  .text.MX_CAN2_Init
-                0x0000000008000834       0xa4 ./Core/Src/main.o
+                0x0000000008000834       0xa8 ./Core/Src/main.o
  .text.MX_GPIO_Init
-                0x00000000080008d8      0x118 ./Core/Src/main.o
+                0x00000000080008dc      0x118 ./Core/Src/main.o
  .text.Error_Handler
-                0x00000000080009f0        0xa ./Core/Src/main.o
-                0x00000000080009f0                Error_Handler
- *fill*         0x00000000080009fa        0x2 
+                0x00000000080009f4        0xa ./Core/Src/main.o
+                0x00000000080009f4                Error_Handler
+ *fill*         0x00000000080009fe        0x2 
  .text.HAL_MspInit
-                0x00000000080009fc       0x50 ./Core/Src/stm32f4xx_hal_msp.o
-                0x00000000080009fc                HAL_MspInit
+                0x0000000008000a00       0x50 ./Core/Src/stm32f4xx_hal_msp.o
+                0x0000000008000a00                HAL_MspInit
  .text.HAL_CAN_MspInit
-                0x0000000008000a4c      0x164 ./Core/Src/stm32f4xx_hal_msp.o
-                0x0000000008000a4c                HAL_CAN_MspInit
+                0x0000000008000a50      0x160 ./Core/Src/stm32f4xx_hal_msp.o
+                0x0000000008000a50                HAL_CAN_MspInit
  .text.NMI_Handler
                 0x0000000008000bb0        0x6 ./Core/Src/stm32f4xx_it.o
                 0x0000000008000bb0                NMI_Handler
@@ -2927,17 +2927,17 @@ LOAD a:/stm32/stm32/stm32cubeide_1.11.2/stm32cubeide/plugins/com.st.stm32cube.id
  .debug_macro   0x000000000001d2dc      0x1c0 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
  .debug_macro   0x000000000001d49c      0x1de ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
 
-.debug_line     0x0000000000000000     0x5f21
- .debug_line    0x0000000000000000      0x922 ./Core/Src/main.o
- .debug_line    0x0000000000000922      0x766 ./Core/Src/stm32f4xx_hal_msp.o
- .debug_line    0x0000000000001088      0x7c0 ./Core/Src/stm32f4xx_it.o
- .debug_line    0x0000000000001848      0x737 ./Core/Src/system_stm32f4xx.o
- .debug_line    0x0000000000001f7f       0x88 ./Core/Startup/startup_stm32f405rgtx.o
- .debug_line    0x0000000000002007      0x99d ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
- .debug_line    0x00000000000029a4     0x1109 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.o
- .debug_line    0x0000000000003aad      0xc4c ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
- .debug_line    0x00000000000046f9      0xb11 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
- .debug_line    0x000000000000520a      0xd17 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
+.debug_line     0x0000000000000000     0x5f22
+ .debug_line    0x0000000000000000      0x921 ./Core/Src/main.o
+ .debug_line    0x0000000000000921      0x768 ./Core/Src/stm32f4xx_hal_msp.o
+ .debug_line    0x0000000000001089      0x7c0 ./Core/Src/stm32f4xx_it.o
+ .debug_line    0x0000000000001849      0x737 ./Core/Src/system_stm32f4xx.o
+ .debug_line    0x0000000000001f80       0x88 ./Core/Startup/startup_stm32f405rgtx.o
+ .debug_line    0x0000000000002008      0x99d ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o
+ .debug_line    0x00000000000029a5     0x1109 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.o
+ .debug_line    0x0000000000003aae      0xc4c ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o
+ .debug_line    0x00000000000046fa      0xb11 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.o
+ .debug_line    0x000000000000520b      0xd17 ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o
 
 .debug_str      0x0000000000000000    0xb3b06
  .debug_str     0x0000000000000000    0xb2828 ./Core/Src/main.o

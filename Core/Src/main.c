@@ -161,13 +161,13 @@ int main(void)
   TxData2[1] = 40;
 
 
-//  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK){
+  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK){
+	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
+  }
+//   if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
 //	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-//  }
-   if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
-	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, SET);
-   }
-   HAL_Delay(100);
+//   }
+//   HAL_Delay(100);
 
   /* USER CODE END 2 */
 
@@ -197,7 +197,7 @@ int main(void)
 	 		  // blink the LED
 	 		  for (int i=0; i<RxData2[1]; i++)
 	 		  {
-	 			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
+	 			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 	 			  HAL_Delay(RxData2[0]);
 	 		  }
 	 		  datacheck2 = 0;
@@ -207,6 +207,8 @@ int main(void)
 
 	 			HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox);
 	 	  }
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -290,11 +292,11 @@ static void MX_CAN1_Init(void)
   CAN_FilterTypeDef canfilterconfig;
 
     canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
-    canfilterconfig.FilterBank = 1;  // which filter bank to use from the assigned ones
+    canfilterconfig.FilterBank = 4;  // which filter bank to use from the assigned ones
     canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    canfilterconfig.FilterIdHigh = 0;
+    canfilterconfig.FilterIdHigh = 0x0A2<<5;
     canfilterconfig.FilterIdLow = 0;
-    canfilterconfig.FilterMaskIdHigh = 0;
+    canfilterconfig.FilterMaskIdHigh = 0x0A2<<5;
     canfilterconfig.FilterMaskIdLow = 0;
     canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
     canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
@@ -342,10 +344,10 @@ static void MX_CAN2_Init(void)
       canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
       canfilterconfig.FilterBank = 25;  // which filter bank to use from the assigned ones
       canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO1;
-      canfilterconfig.FilterIdHigh = 0;
+      canfilterconfig.FilterIdHigh = 0x012<<5;
       canfilterconfig.FilterIdLow = 0;
-      canfilterconfig.FilterMaskIdHigh = 0;
-      canfilterconfig.FilterMaskIdLow = 0x0000;
+      canfilterconfig.FilterMaskIdHigh = 0x012<<5;
+      canfilterconfig.FilterMaskIdLow = 0;
       canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
       canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
       canfilterconfig.SlaveStartFilterBank = 20;  // how many filters to assign to the CAN1 (master can)

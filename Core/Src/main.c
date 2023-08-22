@@ -206,12 +206,6 @@ int main(void)
   while (1)
   {
 	  //file main
-	         HAL_ADC_Start(&hadc1);
-	  	    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-	  	    uint16_t adcValue = HAL_ADC_GetValue(&hadc1);
-	  	    HAL_ADC_Stop(&hadc1);
-	  	    HAL_UART_Transmit(&huart2, (void *)str , sprintf(str, "Hello=%d\r\n", adcValue), 1000);
-	  	    HAL_Delay(2000);
 //	  /*Node1 (practice board): recieve data*/
 //	  if(data_flag1){
 //		  TxData1[0] = RxData1[0];

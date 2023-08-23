@@ -70,12 +70,6 @@ static void MX_ADC1_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t calculate_crc_sae_j1850(uint8_t *data, int length);
 
-CAN_TxHeaderTypeDef TxHeader1;
-CAN_RxHeaderTypeDef RxHeader1;
-
-uint8_t TxData1[8] = {0};
-uint8_t RxData1[8];
-
 CAN_TxHeaderTypeDef TxHeader2;
 CAN_RxHeaderTypeDef RxHeader2;
 
@@ -84,36 +78,19 @@ uint8_t RxData2[8];
 
 uint32_t TxMailbox;
 
-int datacheck1 = 0;
 int datacheck2 = 0;
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if (GPIO_Pin == GPIO_PIN_1)
-	{
-
-	}
-}
 
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader1 ,RxData1);
-		if (RxHeader1.DLC == 8)
-		{
-			data_flag1 = 1;
-		}
-
-}
-
-void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader2, RxData2);
+		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader2 ,RxData2);
 		if (RxHeader2.DLC == 8)
 		{
-			data_flag2 =1;
+			data_flag2 = 1;
 		}
+
 }
+
 
 uint8_t buffer[MAX_BUFFER_SIZE];
 
@@ -172,14 +149,6 @@ int main(void)
 
   HAL_Delay(300);
 
-  TxHeader1.DLC   = 8;  // data length
-  TxHeader1.IDE   = CAN_ID_STD;
-  TxHeader1.RTR   = CAN_RTR_DATA;
-  TxHeader1.StdId = 0x012;  // ID
-
-  TxData1[0] = 100;
-  TxData1[1] = 40;
-
   TxHeader2.DLC   = 8;  // data length
   TxHeader2.IDE   = CAN_ID_STD;
   TxHeader2.RTR   = CAN_RTR_DATA;
@@ -206,30 +175,6 @@ int main(void)
   while (1)
   {
 	  //LAB1 tester board
-	  /*Node1 (practice board): recieve data*/
-	  if(data_flag1){
-		  TxData1[0] = RxData1[0];
-		  TxData1[1] = RxData1[1];
-		  TxData1[2] = TxData1[0] + TxData1[1];
-		  TxData1[7] = calculate_crc_sae_j1850(TxData1, 7);
-		  data_flag1 = 0;
-	  }
-
-	  /*Node1 : send data*/
-	  if(timer1_flag){
-		  setTimer1(20);
-		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0)
-		  { // check Mailbox
-		 	 if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK)
-		 	 {
-		 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, SET);
-		 	  }
-		  }
-		   else
-		   {
-		 	  Error_Handler();
-		   }
-	  }
 	  /*Node 2(verification board): recive data*/
 	  if(data_flag2){
 		  data_flag2 = 0;
@@ -253,22 +198,7 @@ int main(void)
 			  Error_Handler();
 		  }
 	  }
-	  if (datacheck1)
-	  {
-//		   blink the LED
-		  for (int i=0; i<RxData1[1]; i++)
-		  {
-			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-			  HAL_Delay(RxData1[0]);
-		  }
-		  datacheck1 = 0;
 
-			TxData1[0] = 100;   // ms Delay
-			TxData1[1] = 40;    // loop rep
-
-			HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox);
-	  }
-	  HAL_Delay(100);
 	  if (datacheck2)
 	 	  {
 	 		  // blink the LED

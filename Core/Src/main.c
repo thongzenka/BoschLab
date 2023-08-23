@@ -70,21 +70,20 @@ static void MX_ADC1_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t calculate_crc_sae_j1850(uint8_t *data, int length);
 
-CAN_TxHeaderTypeDef TxHeader1;
-CAN_RxHeaderTypeDef RxHeader1;
+CAN_TxHeaderTypeDef TxHeader;
+CAN_RxHeaderTypeDef RxHeader;
 
-uint8_t TxData1[8] = {0};
-uint8_t RxData1[8];
+uint8_t TxData[8] = {0};
+uint8_t RxData[8];
 
 
 uint32_t TxMailbox;
 
-int datacheck1 = 0;
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader1 ,RxData1);
-		if (RxHeader1.DLC == 8)
+		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
+		if (RxHeader.DLC == 8)
 		{
 			data_flag1 = 1;
 		}
@@ -139,22 +138,17 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
-  HAL_CAN_Start(&hcan2);
   HAL_TIM_Base_Start_IT(&htim2);
 
   // Activate the notification
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
 
   HAL_Delay(300);
 
-  TxHeader1.DLC   = 8;  // data length
-  TxHeader1.IDE   = CAN_ID_STD;
-  TxHeader1.RTR   = CAN_RTR_DATA;
-  TxHeader1.StdId = 0x012;  // ID
-
-  TxData1[0] = 100;
-  TxData1[1] = 40;
+  TxHeader.DLC   = 8;  // data length
+  TxHeader.IDE   = CAN_ID_STD;
+  TxHeader.RTR   = CAN_RTR_DATA;
+  TxHeader.StdId = 0x012;  // ID
 
   setTimer1(100);
 
@@ -167,10 +161,10 @@ int main(void)
 	  //LAB1 ECU BOARD
 	  /*Node1 (practice board): recieve data*/
 	  if(data_flag1){
-		  TxData1[0] = RxData1[0];
-		  TxData1[1] = RxData1[1];
-		  TxData1[2] = TxData1[0] + TxData1[1];
-		  TxData1[7] = calculate_crc_sae_j1850(TxData1, 7);
+		  TxData[0] = RxData[0];
+		  TxData[1] = RxData[1];
+		  TxData[2] = TxData[0] + TxData[1];
+		  TxData[7] = calculate_crc_sae_j1850(TxData, 7);
 		  data_flag1 = 0;
 	  }
 
@@ -179,9 +173,9 @@ int main(void)
 		  setTimer1(20);
 		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0)
 		  { // check Mailbox
-		 	 if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK)
+		 	 if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK)
 		 	 {
-		 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, SET);
+		 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
 		 	  }
 		  }
 		   else

@@ -85,16 +85,6 @@ uint8_t RxData2[8];
 uint32_t TxMailbox;
 
 int datacheck1 = 0;
-int datacheck2 = 0;
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if (GPIO_Pin == GPIO_PIN_1)
-	{
-
-	}
-}
-
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
@@ -104,15 +94,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 			data_flag1 = 1;
 		}
 
-}
-
-void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader2, RxData2);
-		if (RxHeader2.DLC == 8)
-		{
-			data_flag2 =1;
-		}
 }
 
 uint8_t buffer[MAX_BUFFER_SIZE];
@@ -180,24 +161,7 @@ int main(void)
   TxData1[0] = 100;
   TxData1[1] = 40;
 
-  TxHeader2.DLC   = 8;  // data length
-  TxHeader2.IDE   = CAN_ID_STD;
-  TxHeader2.RTR   = CAN_RTR_DATA;
-  TxHeader2.StdId = 0x0A2;  // ID
-
-//  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK){
-//	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-//  }
   setTimer1(100);
-  setTimer2(50);
-
-
-
-//   if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
-//	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-//   }
-//   HAL_Delay(100);
-
 
   /* USER CODE END 2 */
 
@@ -235,55 +199,55 @@ int main(void)
 		  data_flag2 = 0;
 		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	  }
-	  /*Node 2(verification board): send data*/
-	  if(timer2_flag){
-		  setTimer2(50);
-		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan2) >0 ){ // check Mailbox
-			  TxData2[0] = 0x02;
-			  TxData2[1] = 0x12;
-			  if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
-				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-				  dataCounter++;
-				  if(dataCounter >=100){
-					  dataCounter = 0;
-				  }
-			  }
-		  }
-		  else{
-			  Error_Handler();
-		  }
-	  }
-	  if (datacheck1)
-	  {
-//		   blink the LED
-		  for (int i=0; i<RxData1[1]; i++)
-		  {
-			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-			  HAL_Delay(RxData1[0]);
-		  }
-		  datacheck1 = 0;
-
-			TxData1[0] = 100;   // ms Delay
-			TxData1[1] = 40;    // loop rep
-
-			HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox);
-	  }
-	  HAL_Delay(100);
-	  if (datacheck2)
-	 	  {
-	 		  // blink the LED
-	 		  for (int i=0; i<RxData2[1]; i++)
-	 		  {
-	 			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	 			  HAL_Delay(RxData2[0]);
-	 		  }
-	 		  datacheck2 = 0;
-
-	 			TxData2[0] = 100;   // ms Delay
-	 			TxData2[1] = 40;    // loop rep
-
-	 			HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox);
-	 	  }
+//	  /*Node 2(verification board): send data*/
+//	  if(timer2_flag){
+//		  setTimer2(50);
+//		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan2) >0 ){ // check Mailbox
+//			  TxData2[0] = 0x02;
+//			  TxData2[1] = 0x12;
+//			  if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
+//				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
+//				  dataCounter++;
+//				  if(dataCounter >=100){
+//					  dataCounter = 0;
+//				  }
+//			  }
+//		  }
+//		  else{
+//			  Error_Handler();
+//		  }
+//	  }
+//	  if (datacheck1)
+//	  {
+////		   blink the LED
+//		  for (int i=0; i<RxData1[1]; i++)
+//		  {
+//			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+//			  HAL_Delay(RxData1[0]);
+//		  }
+//		  datacheck1 = 0;
+//
+//			TxData1[0] = 100;   // ms Delay
+//			TxData1[1] = 40;    // loop rep
+//
+//			HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox);
+//	  }
+//	  HAL_Delay(100);
+//	  if (datacheck2)
+//	 	  {
+//	 		  // blink the LED
+//	 		  for (int i=0; i<RxData2[1]; i++)
+//	 		  {
+//	 			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+//	 			  HAL_Delay(RxData2[0]);
+//	 		  }
+//	 		  datacheck2 = 0;
+//
+//	 			TxData2[0] = 100;   // ms Delay
+//	 			TxData2[1] = 40;    // loop rep
+//
+//	 			HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox);
+//	 	  }
 
 
     /* USER CODE END WHILE */

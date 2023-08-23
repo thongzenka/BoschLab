@@ -205,7 +205,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //file main
+	  //LAB1 tester board
 	  /*Node1 (practice board): recieve data*/
 	  if(data_flag1){
 		  TxData1[0] = RxData1[0];

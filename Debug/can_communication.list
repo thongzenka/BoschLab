@@ -633,7 +633,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //file main
+	  //LAB1 tester board
 	  /*Node1 (practice board): recieve data*/
 	  if(data_flag1){
  8000660:	4b6c      	ldr	r3, [pc, #432]	; (8000814 <main+0x24c>)

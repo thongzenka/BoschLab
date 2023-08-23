@@ -70,21 +70,18 @@ static void MX_ADC1_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t calculate_crc_sae_j1850(uint8_t *data, int length);
 
-CAN_TxHeaderTypeDef TxHeader2;
-CAN_RxHeaderTypeDef RxHeader2;
+CAN_TxHeaderTypeDef TxHeader;
+CAN_RxHeaderTypeDef RxHeader;
 
-uint8_t TxData2[8];
-uint8_t RxData2[8];
+uint8_t TxData[8];
+uint8_t RxData[8];
 
 uint32_t TxMailbox;
 
-int datacheck2 = 0;
-
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader2 ,RxData2);
-		if (RxHeader2.DLC == 8)
+		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader,RxData);
+		if (RxHeader.DLC == 8)
 		{
 			data_flag2 = 1;
 		}
@@ -140,33 +137,17 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
-  HAL_CAN_Start(&hcan2);
   HAL_TIM_Base_Start_IT(&htim2);
 
   // Activate the notification
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
-
   HAL_Delay(300);
+  TxHeader.DLC   = 8;  // data length
+  TxHeader.IDE   = CAN_ID_STD;
+  TxHeader.RTR   = CAN_RTR_DATA;
+  TxHeader.StdId = 0x0A2;  // ID
 
-  TxHeader2.DLC   = 8;  // data length
-  TxHeader2.IDE   = CAN_ID_STD;
-  TxHeader2.RTR   = CAN_RTR_DATA;
-  TxHeader2.StdId = 0x0A2;  // ID
-
-//  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK){
-//	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-//  }
-  setTimer1(100);
   setTimer2(50);
-
-
-
-//   if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
-//	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-//   }
-//   HAL_Delay(100);
-
 
   /* USER CODE END 2 */
 
@@ -183,10 +164,10 @@ int main(void)
 	  /*Node 2(verification board): send data*/
 	  if(timer2_flag){
 		  setTimer2(50);
-		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan2) >0 ){ // check Mailbox
-			  TxData2[0] = 0x02;
-			  TxData2[1] = 0x12;
-			  if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
+		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) >0 ){ // check Mailbox
+			  TxData[0] = 0x02;
+			  TxData[1] = 0x12;
+			  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK){
 				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
 				  dataCounter++;
 				  if(dataCounter >=100){
@@ -198,24 +179,6 @@ int main(void)
 			  Error_Handler();
 		  }
 	  }
-
-	  if (datacheck2)
-	 	  {
-	 		  // blink the LED
-	 		  for (int i=0; i<RxData2[1]; i++)
-	 		  {
-	 			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	 			  HAL_Delay(RxData2[0]);
-	 		  }
-	 		  datacheck2 = 0;
-
-	 			TxData2[0] = 100;   // ms Delay
-	 			TxData2[1] = 40;    // loop rep
-
-	 			HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox);
-	 	  }
-
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -353,9 +316,9 @@ static void MX_CAN1_Init(void)
     canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
     canfilterconfig.FilterBank = 4;  // which filter bank to use from the assigned ones
     canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    canfilterconfig.FilterIdHigh = 0x0A2<<5;
+    canfilterconfig.FilterIdHigh =  0x012<<5;
     canfilterconfig.FilterIdLow = 0;
-    canfilterconfig.FilterMaskIdHigh = 0x0A2<<5;
+    canfilterconfig.FilterMaskIdHigh =  0x012<<5;
     canfilterconfig.FilterMaskIdLow = 0;
     canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
     canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;

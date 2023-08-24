@@ -172,7 +172,7 @@ int main(void)
 				  dataCounter++;
 				  if(dataCounter >=100){
 					  dataCounter = 0;
-				  }
+
 			  }
 		  }
 		  else{

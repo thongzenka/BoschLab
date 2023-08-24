@@ -93,7 +93,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 }
 
 uint8_t buffer[MAX_BUFFER_SIZE];
-uint8_t buffer0[MAX_BUFFER_SIZE];
+uint8_t buffer0[1];
+uint8_t buffer1[1];
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if( huart -> Instance == USART2 ) {
@@ -155,7 +156,6 @@ int main(void)
   setTimer1(100);
 
     lcd_init();
-
     ST7789_Init();
 //    ST7789_WriteString(30, 20, "Speed Test", Font_11x18, RED, WHITE);
   /* USER CODE END 2 */
@@ -172,12 +172,12 @@ int main(void)
 		  TxData[2] = TxData[0] + TxData[1];
 		  TxData[7] = calculate_crc_sae_j1850(TxData, 7);
 		  data_flag1 = 0;
-		  sprintf(&buffer0[0], "DataId = %02x: ", RxData[0]);
-		  sprintf(&buffer0[1], "DataId = %02x: ", RxData[1]);
+		  sprintf(&buffer0[0], "DataId = %02x ", RxData[0]);
+		  sprintf(&buffer1[0], "DataId = %02x ", RxData[1]);
 //		  sprintf(buffer0, "DataId=%02X\r\n: ", TxData[1]);
 
 		  ST7789_WriteString(0, 0, &buffer0[0] , Font_11x18, RED, WHITE);
-		  ST7789_WriteString(0, 20, &buffer0[1] , Font_11x18, RED, WHITE);
+		  ST7789_WriteString(0, 20, &buffer1[0] , Font_11x18, RED, WHITE);
 	  }
 
 	  /*Node1 : send data*/

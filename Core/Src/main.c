@@ -24,6 +24,10 @@
 #include "timer.h"
 #include "global.h"
 #include "stdio.h"
+#include "fonts.h"
+#include "LCD_driver.h"
+#include "st7789.h"
+#include "LCD_lib.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,10 +45,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc1;
-
 CAN_HandleTypeDef hcan1;
-CAN_HandleTypeDef hcan2;
+
+SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim2;
 
@@ -58,10 +61,9 @@ UART_HandleTypeDef huart2;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_CAN2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_ADC1_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -91,6 +93,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 }
 
 uint8_t buffer[MAX_BUFFER_SIZE];
+uint8_t buffer0[MAX_BUFFER_SIZE];
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if( huart -> Instance == USART2 ) {
@@ -132,10 +135,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN1_Init();
-  MX_CAN2_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
-  MX_ADC1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
   HAL_TIM_Base_Start_IT(&htim2);
@@ -152,6 +154,10 @@ int main(void)
 
   setTimer1(100);
 
+    lcd_init();
+
+    ST7789_Init();
+//    ST7789_WriteString(30, 20, "Speed Test", Font_11x18, RED, WHITE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -166,6 +172,10 @@ int main(void)
 		  TxData[2] = TxData[0] + TxData[1];
 		  TxData[7] = calculate_crc_sae_j1850(TxData, 7);
 		  data_flag1 = 0;
+		  sprintf(&buffer0[0], "DataId=%02X\r\n: ", TxData[0]);
+//		  sprintf(buffer0, "DataId=%02X\r\n: ", TxData[1]);
+
+		  ST7789_WriteString(0, 0, &buffer0[0] , Font_11x18, RED, WHITE);
 	  }
 
 	  /*Node1 : send data*/
@@ -233,58 +243,6 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_ADC1_Init(void)
-{
-
-  /* USER CODE BEGIN ADC1_Init 0 */
-
-  /* USER CODE END ADC1_Init 0 */
-
-  ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC1_Init 1 */
-
-  /* USER CODE END ADC1_Init 1 */
-
-  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
-  */
-  hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  if (HAL_ADC_Init(&hadc1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_6;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN ADC1_Init 2 */
-
-  /* USER CODE END ADC1_Init 2 */
-
-}
-
-/**
   * @brief CAN1 Initialization Function
   * @param None
   * @retval None
@@ -335,52 +293,40 @@ static void MX_CAN1_Init(void)
 }
 
 /**
-  * @brief CAN2 Initialization Function
+  * @brief SPI1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_CAN2_Init(void)
+static void MX_SPI1_Init(void)
 {
 
-  /* USER CODE BEGIN CAN2_Init 0 */
+  /* USER CODE BEGIN SPI1_Init 0 */
 
-  /* USER CODE END CAN2_Init 0 */
+  /* USER CODE END SPI1_Init 0 */
 
-  /* USER CODE BEGIN CAN2_Init 1 */
+  /* USER CODE BEGIN SPI1_Init 1 */
 
-  /* USER CODE END CAN2_Init 1 */
-  hcan2.Instance = CAN2;
-  hcan2.Init.Prescaler = 8;
-  hcan2.Init.Mode = CAN_MODE_NORMAL;
-  hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan2.Init.TimeSeg1 = CAN_BS1_2TQ;
-  hcan2.Init.TimeSeg2 = CAN_BS2_1TQ;
-  hcan2.Init.TimeTriggeredMode = DISABLE;
-  hcan2.Init.AutoBusOff = DISABLE;
-  hcan2.Init.AutoWakeUp = DISABLE;
-  hcan2.Init.AutoRetransmission = DISABLE;
-  hcan2.Init.ReceiveFifoLocked = DISABLE;
-  hcan2.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan2) != HAL_OK)
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN CAN2_Init 2 */
-      CAN_FilterTypeDef canfilterconfig;
+  /* USER CODE BEGIN SPI1_Init 2 */
 
-      canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
-      canfilterconfig.FilterBank = 25;  // which filter bank to use from the assigned ones
-      canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO1;
-      canfilterconfig.FilterIdHigh = 0x012<<5;
-      canfilterconfig.FilterIdLow = 0;
-      canfilterconfig.FilterMaskIdHigh = 0x012<<5;
-      canfilterconfig.FilterMaskIdLow = 0;
-      canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
-      canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
-      canfilterconfig.SlaveStartFilterBank = 20;  // how many filters to assign to the CAN1 (master can)
-
-      HAL_CAN_ConfigFilter(&hcan2, &canfilterconfig);
-  /* USER CODE END CAN2_Init 2 */
+  /* USER CODE END SPI1_Init 2 */
 
 }
 
@@ -478,7 +424,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6
+                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PC13 */
   GPIO_InitStruct.Pin = GPIO_PIN_13;
@@ -486,11 +433,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB0 PB1 PB2 PB3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
+  /*Configure GPIO pins : PB0 PB1 PB2 PB6
+                           PB7 PB8 PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6
+                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/

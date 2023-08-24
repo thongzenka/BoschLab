@@ -82,8 +82,9 @@ uint8_t RxData[8];
 uint32_t TxMailbox;
 
 uint8_t buffer[MAX_BUFFER_SIZE];
-uint8_t buffer0[10];
 uint8_t buffer1[10];
+uint8_t buffer2[10];
+uint8_t buffer3[5];
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if( huart -> Instance == USART2 ) {
@@ -146,7 +147,7 @@ int main(void)
 
     lcd_init();
     ST7789_Init();
-    setTimer1(10);
+    setTimer1(100);
 
   /* USER CODE END 2 */
 
@@ -157,11 +158,17 @@ int main(void)
 	  //LAB1 ECU BOARD
 	  /*Node1 (practice board): recieve data*/
 	  if(data_flag1){
+		  sprintf(&buffer3[0], "Xin chao= %02x ", TxHeader.StdId );
 		  TxData[0] = RxData[0];
 		  TxData[1] = RxData[1];
 		  TxData[2] = TxData[0] + TxData[1];
 		  TxData[7] = calculate_crc_sae_j1850(TxData, 7);
 		  data_flag1 = 0;
+	 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+			sprintf(&buffer1[0], "DataId = %02x ", RxData[0]);
+			sprintf(&buffer2[0], "DataId = %02x ", RxData[1]);
+			  ST7789_WriteString(5, 0, &buffer1[0] , Font_11x18, RED, WHITE);
+			  ST7789_WriteString(0, 20, &buffer2[0] , Font_11x18, RED, WHITE);
 	  }
 
 	  /*Node1 : send data*/
@@ -464,10 +471,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
 		if (RxHeader.DLC == 8)
 		{
-			sprintf(&buffer0[0], "DataId = %02x ", RxData[0]);
-			sprintf(&buffer1[0], "DataId = %02x ", RxData[1]);
-			  ST7789_WriteString(0, 0, &buffer0[0] , Font_11x18, RED, WHITE);
-			  ST7789_WriteString(0, 20, &buffer1[0] , Font_11x18, RED, WHITE);
 			data_flag1 = 1;
 		}
 

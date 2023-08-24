@@ -93,8 +93,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 }
 
 uint8_t buffer[MAX_BUFFER_SIZE];
-uint8_t buffer0[1];
-uint8_t buffer1[1];
+uint8_t buffer0[10];
+uint8_t buffer1[10];
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if( huart -> Instance == USART2 ) {

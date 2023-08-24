@@ -565,7 +565,7 @@ int main(void)
  80005fc:	f001 fb09 	bl	8001c12 <HAL_CAN_GetTxMailboxesFreeLevel>
  8000600:	4603      	mov	r3, r0
  8000602:	2b00      	cmp	r3, #0
- 8000604:	d021      	beq.n	800064a <main+0xd2>
+ 8000604:	d0e7      	beq.n	80005d6 <main+0x5e>
 			  TxData[0] = 0x02;
  8000606:	4b18      	ldr	r3, [pc, #96]	; (8000668 <main+0xf0>)
  8000608:	2202      	movs	r2, #2
@@ -582,7 +582,7 @@ int main(void)
  800061a:	f001 fa1f 	bl	8001a5c <HAL_CAN_AddTxMessage>
  800061e:	4603      	mov	r3, r0
  8000620:	2b00      	cmp	r3, #0
- 8000622:	d1d8      	bne.n	80005d6 <main+0x5e>
+ 8000622:	d112      	bne.n	800064a <main+0xd2>
 				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
  8000624:	2201      	movs	r2, #1
  8000626:	2101      	movs	r1, #1
@@ -605,7 +605,7 @@ int main(void)
  8000644:	2200      	movs	r2, #0
  8000646:	701a      	strb	r2, [r3, #0]
  8000648:	e7c5      	b.n	80005d6 <main+0x5e>
-				  }
+
 			  }
 		  }
 		  else{

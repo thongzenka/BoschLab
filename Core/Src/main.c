@@ -178,11 +178,12 @@ int main(void)
 		  else{
 			  Error_Handler();
 		  }
+	    }
 	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+    }
   /* USER CODE END 3 */
 }
 

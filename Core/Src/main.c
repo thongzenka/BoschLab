@@ -102,10 +102,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_UART_Receive_IT(&huart2, & temp, 1);
 	}
 }
-uint8_t buffer1[5];
-uint8_t buffer2[5];
-uint8_t buffer3[5];
-uint8_t buffer4[5];
+uint8_t buffer1[15];
+uint8_t buffer2[15];
+uint8_t buffer3[15];
+uint8_t buffer4[15];
 /* USER CODE END 0 */
 
 /**
@@ -165,10 +165,10 @@ int main(void)
 	  //LAB1 tester board
 	  /*Node 2(verification board): recive data*/
 	  if(data_flag2){
-          sprintf(&buffer1[0], "Hello =  %02x", RxHeader.StdId);
-          sprintf(&buffer2[0], "Byte0 =  %02x", RxData[0]);
-          sprintf(&buffer3[0], "Byte1 =  %02x", RxData[1]);
-          sprintf(&buffer4[0], "Byte7 =  %02x", RxData[7]);
+          sprintf(&buffer1[0], "Hello = 0%02x", RxHeader.StdId);
+          sprintf(&buffer2[0], "Byte0 = 0%02x", RxData[0]);
+          sprintf(&buffer3[0], "Byte1 = 0%02x", RxData[1]);
+          sprintf(&buffer4[0], "Byte7 = 0%02x", RxData[7]);
           ST7789_WriteString(10, 20, &buffer1[0], Font_11x18, RED, WHITE);
           ST7789_WriteString(10, 40, &buffer2[0], Font_11x18, RED, WHITE);
           ST7789_WriteString(10, 60, &buffer3[0], Font_11x18, RED, WHITE);

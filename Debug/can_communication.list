@@ -23,9 +23,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   9 .ccmram       00000000  10000000  10000000  00020078  2**0
                   CONTENTS
- 10 .bss          000001e8  20000078  20000078  00020078  2**2
+ 10 .bss          00000208  20000078  20000078  00020078  2**2
                   ALLOC
- 11 ._user_heap_stack 00000600  20000260  20000260  00020078  2**0
+ 11 ._user_heap_stack 00000600  20000280  20000280  00020078  2**0
                   ALLOC
  12 .ARM.attributes 00000030  00000000  00000000  00020078  2**0
                   CONTENTS, READONLY
@@ -1236,28 +1236,28 @@ int main(void)
  8000aae:	781b      	ldrb	r3, [r3, #0]
  8000ab0:	2b00      	cmp	r3, #0
  8000ab2:	d05e      	beq.n	8000b72 <main+0x12a>
-          sprintf(&buffer1[0], "Hello =  %02x", RxHeader.StdId);
+          sprintf(&buffer1[0], "Hello = 0%02x", RxHeader.StdId);
  8000ab4:	4b4c      	ldr	r3, [pc, #304]	; (8000be8 <main+0x1a0>)
  8000ab6:	681b      	ldr	r3, [r3, #0]
  8000ab8:	461a      	mov	r2, r3
  8000aba:	494c      	ldr	r1, [pc, #304]	; (8000bec <main+0x1a4>)
  8000abc:	484c      	ldr	r0, [pc, #304]	; (8000bf0 <main+0x1a8>)
  8000abe:	f005 f9d5 	bl	8005e6c <siprintf>
-          sprintf(&buffer2[0], "Byte0 =  %02x", RxData[0]);
+          sprintf(&buffer2[0], "Byte0 = 0%02x", RxData[0]);
  8000ac2:	4b4c      	ldr	r3, [pc, #304]	; (8000bf4 <main+0x1ac>)
  8000ac4:	781b      	ldrb	r3, [r3, #0]
  8000ac6:	461a      	mov	r2, r3
  8000ac8:	494b      	ldr	r1, [pc, #300]	; (8000bf8 <main+0x1b0>)
  8000aca:	484c      	ldr	r0, [pc, #304]	; (8000bfc <main+0x1b4>)
  8000acc:	f005 f9ce 	bl	8005e6c <siprintf>
-          sprintf(&buffer3[0], "Byte1 =  %02x", RxData[1]);
+          sprintf(&buffer3[0], "Byte1 = 0%02x", RxData[1]);
  8000ad0:	4b48      	ldr	r3, [pc, #288]	; (8000bf4 <main+0x1ac>)
  8000ad2:	785b      	ldrb	r3, [r3, #1]
  8000ad4:	461a      	mov	r2, r3
  8000ad6:	494a      	ldr	r1, [pc, #296]	; (8000c00 <main+0x1b8>)
  8000ad8:	484a      	ldr	r0, [pc, #296]	; (8000c04 <main+0x1bc>)
  8000ada:	f005 f9c7 	bl	8005e6c <siprintf>
-          sprintf(&buffer4[0], "Byte7 =  %02x", RxData[7]);
+          sprintf(&buffer4[0], "Byte7 = 0%02x", RxData[7]);
  8000ade:	4b45      	ldr	r3, [pc, #276]	; (8000bf4 <main+0x1ac>)
  8000ae0:	79db      	ldrb	r3, [r3, #7]
  8000ae2:	461a      	mov	r2, r3
@@ -1396,14 +1396,14 @@ int main(void)
  8000bf0:	20000210 	.word	0x20000210
  8000bf4:	200001e4 	.word	0x200001e4
  8000bf8:	08006770 	.word	0x08006770
- 8000bfc:	20000218 	.word	0x20000218
+ 8000bfc:	20000220 	.word	0x20000220
  8000c00:	08006780 	.word	0x08006780
- 8000c04:	20000220 	.word	0x20000220
+ 8000c04:	20000230 	.word	0x20000230
  8000c08:	08006790 	.word	0x08006790
- 8000c0c:	20000228 	.word	0x20000228
+ 8000c0c:	20000240 	.word	0x20000240
  8000c10:	20000000 	.word	0x20000000
  8000c14:	40020400 	.word	0x40020400
- 8000c18:	20000244 	.word	0x20000244
+ 8000c18:	20000264 	.word	0x20000264
  8000c1c:	200001dc 	.word	0x200001dc
  8000c20:	200001ec 	.word	0x200001ec
  8000c24:	20000098 	.word	0x20000098
@@ -2604,15 +2604,14 @@ void ST7789_Init(void)
 	HAL_Delay(50);
  8001332:	2032      	movs	r0, #50	; 0x32
  8001334:	f000 fc0c 	bl	8001b50 <HAL_Delay>
-	ST7789_Fill_Color(BLACK);				//	Fill with Black.
- 8001338:	2000      	movs	r0, #0
- 800133a:	f000 f80d 	bl	8001358 <ST7789_Fill_Color>
+	ST7789_Fill_Color(WHITE);				//	Fill with Black.
+ 8001338:	f64f 70ff 	movw	r0, #65535	; 0xffff
+ 800133c:	f000 f80c 	bl	8001358 <ST7789_Fill_Color>
 }
- 800133e:	bf00      	nop
- 8001340:	372c      	adds	r7, #44	; 0x2c
- 8001342:	46bd      	mov	sp, r7
- 8001344:	bd90      	pop	{r4, r7, pc}
- 8001346:	bf00      	nop
+ 8001340:	bf00      	nop
+ 8001342:	372c      	adds	r7, #44	; 0x2c
+ 8001344:	46bd      	mov	sp, r7
+ 8001346:	bd90      	pop	{r4, r7, pc}
  8001348:	40020400 	.word	0x40020400
  800134c:	080067a0 	.word	0x080067a0
  8001350:	080067a8 	.word	0x080067a8
@@ -3727,8 +3726,8 @@ void *_sbrk(ptrdiff_t incr)
  8001922:	bd80      	pop	{r7, pc}
  8001924:	20020000 	.word	0x20020000
  8001928:	00000400 	.word	0x00000400
- 800192c:	20000230 	.word	0x20000230
- 8001930:	20000260 	.word	0x20000260
+ 800192c:	20000250 	.word	0x20000250
+ 8001930:	20000280 	.word	0x20000280
 
 08001934 <SystemInit>:
   *         configuration.
@@ -3791,8 +3790,8 @@ void setTimer2 (int duration) {
  800197e:	f85d 7b04 	ldr.w	r7, [sp], #4
  8001982:	4770      	bx	lr
  8001984:	66666667 	.word	0x66666667
- 8001988:	20000238 	.word	0x20000238
- 800198c:	20000244 	.word	0x20000244
+ 8001988:	20000258 	.word	0x20000258
+ 800198c:	20000264 	.word	0x20000264
 
 08001990 <timerRun>:
 void setTimer3 (int duration) {
@@ -3877,12 +3876,12 @@ void timerRun(){
  80019f8:	f85d 7b04 	ldr.w	r7, [sp], #4
  80019fc:	4770      	bx	lr
  80019fe:	bf00      	nop
- 8001a00:	20000234 	.word	0x20000234
- 8001a04:	20000240 	.word	0x20000240
- 8001a08:	20000238 	.word	0x20000238
- 8001a0c:	20000244 	.word	0x20000244
- 8001a10:	2000023c 	.word	0x2000023c
- 8001a14:	20000248 	.word	0x20000248
+ 8001a00:	20000254 	.word	0x20000254
+ 8001a04:	20000260 	.word	0x20000260
+ 8001a08:	20000258 	.word	0x20000258
+ 8001a0c:	20000264 	.word	0x20000264
+ 8001a10:	2000025c 	.word	0x2000025c
+ 8001a14:	20000268 	.word	0x20000268
 
 08001a18 <Reset_Handler>:
 
@@ -3973,7 +3972,7 @@ LoopFillZerobss:
   ldr r2, =_sbss
  8001a60:	20000078 	.word	0x20000078
   ldr r4, =_ebss
- 8001a64:	20000260 	.word	0x20000260
+ 8001a64:	20000280 	.word	0x20000280
 
 08001a68 <ADC_IRQHandler>:
  * @retval None       
@@ -4136,7 +4135,7 @@ __weak void HAL_IncTick(void)
  8001b2c:	4770      	bx	lr
  8001b2e:	bf00      	nop
  8001b30:	20000010 	.word	0x20000010
- 8001b34:	2000024c 	.word	0x2000024c
+ 8001b34:	2000026c 	.word	0x2000026c
 
 08001b38 <HAL_GetTick>:
   * @note This function is declared as __weak to be overwritten in case of other 
@@ -4156,7 +4155,7 @@ __weak uint32_t HAL_GetTick(void)
  8001b44:	f85d 7b04 	ldr.w	r7, [sp], #4
  8001b48:	4770      	bx	lr
  8001b4a:	bf00      	nop
- 8001b4c:	2000024c 	.word	0x2000024c
+ 8001b4c:	2000026c 	.word	0x2000026c
 
 08001b50 <HAL_Delay>:
   *       implementations in user file.
@@ -16570,7 +16569,7 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  800656a:	e7ca      	b.n	8006502 <_free_r+0x26>
  800656c:	b003      	add	sp, #12
  800656e:	bd30      	pop	{r4, r5, pc}
- 8006570:	20000250 	.word	0x20000250
+ 8006570:	20000270 	.word	0x20000270
 
 08006574 <sbrk_aligned>:
  8006574:	b570      	push	{r4, r5, r6, lr}
@@ -16598,7 +16597,7 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  80065a8:	f04f 34ff 	mov.w	r4, #4294967295
  80065ac:	4620      	mov	r0, r4
  80065ae:	bd70      	pop	{r4, r5, r6, pc}
- 80065b0:	20000254 	.word	0x20000254
+ 80065b0:	20000274 	.word	0x20000274
 
 080065b4 <_malloc_r>:
  80065b4:	e92d 41f0 	stmdb	sp!, {r4, r5, r6, r7, r8, lr}
@@ -16702,7 +16701,7 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  8006692:	6025      	str	r5, [r4, #0]
  8006694:	e7de      	b.n	8006654 <_malloc_r+0xa0>
  8006696:	bf00      	nop
- 8006698:	20000250 	.word	0x20000250
+ 8006698:	20000270 	.word	0x20000270
 
 0800669c <_realloc_r>:
  800669c:	e92d 41f0 	stmdb	sp!, {r4, r5, r6, r7, r8, lr}
@@ -16758,19 +16757,19 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  8006712:	b103      	cbz	r3, 8006716 <_sbrk_r+0x1a>
  8006714:	6023      	str	r3, [r4, #0]
  8006716:	bd38      	pop	{r3, r4, r5, pc}
- 8006718:	20000258 	.word	0x20000258
+ 8006718:	20000278 	.word	0x20000278
 
 0800671c <__malloc_lock>:
  800671c:	4801      	ldr	r0, [pc, #4]	; (8006724 <__malloc_lock+0x8>)
  800671e:	f000 b811 	b.w	8006744 <__retarget_lock_acquire_recursive>
  8006722:	bf00      	nop
- 8006724:	2000025c 	.word	0x2000025c
+ 8006724:	2000027c 	.word	0x2000027c
 
 08006728 <__malloc_unlock>:
  8006728:	4801      	ldr	r0, [pc, #4]	; (8006730 <__malloc_unlock+0x8>)
  800672a:	f000 b80c 	b.w	8006746 <__retarget_lock_release_recursive>
  800672e:	bf00      	nop
- 8006730:	2000025c 	.word	0x2000025c
+ 8006730:	2000027c 	.word	0x2000027c
 
 08006734 <_malloc_usable_size_r>:
  8006734:	f851 3c04 	ldr.w	r3, [r1, #-4]

@@ -21,7 +21,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "timer.h"
+#include "global.h"
+#include "stdio.h"
+#include "fonts.h"
+#include "LCD_driver.h"
+#include "LCD_lib.h"
+#include "st7789.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +46,12 @@
 
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
-CAN_HandleTypeDef hcan2;
+
+SPI_HandleTypeDef hspi1;
+
+TIM_HandleTypeDef htim2;
+
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -50,58 +61,51 @@ CAN_HandleTypeDef hcan2;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_CAN2_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t calculate_crc_sae_j1850(uint8_t *data, int length);
 
-CAN_TxHeaderTypeDef TxHeader1;
-CAN_RxHeaderTypeDef RxHeader1;
+CAN_TxHeaderTypeDef TxHeader;
+CAN_RxHeaderTypeDef RxHeader;
 
-uint8_t TxData1[8];
-uint8_t RxData1[8];
-
-CAN_TxHeaderTypeDef TxHeader2;
-CAN_RxHeaderTypeDef RxHeader2;
-
-uint8_t TxData2[8];
-uint8_t RxData2[8];
+uint8_t TxData[8];
+uint8_t RxData[8];
 
 uint32_t TxMailbox;
 
-int datacheck1 = 0;
-int datacheck2 = 0;
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if (GPIO_Pin == GPIO_PIN_1)
-	{
-
-	}
-}
-
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader1 ,RxData1);
-		if (RxHeader1.DLC == 2)
+		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader,RxData);
+		if (RxHeader.DLC == 8)
 		{
-			datacheck1 = 1;
+			data_flag2 = 1;
 		}
 
 }
 
-void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader2, RxData2);
-		if (RxHeader2.DLC == 2)
-		{
-			datacheck2 = 1;
-		}
+
+uint8_t buffer[MAX_BUFFER_SIZE];
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if( huart -> Instance == USART2 ) {
+		buffer[index_buffer++] = temp;
+		if(index_buffer == 30) index_buffer = 0;
+		buffer_flag = 1;
+		HAL_UART_Transmit (&huart2, &temp, 1, 50) ;
+		HAL_UART_Receive_IT(&huart2, & temp, 1);
+	}
 }
+uint8_t buffer1[15];
+uint8_t buffer2[15];
+uint8_t buffer3[15];
+uint8_t buffer4[15];
 /* USER CODE END 0 */
 
 /**
@@ -133,41 +137,24 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN1_Init();
-  MX_CAN2_Init();
+  MX_TIM2_Init();
+  MX_USART2_UART_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
-  HAL_CAN_Start(&hcan2);
+  HAL_TIM_Base_Start_IT(&htim2);
 
   // Activate the notification
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
-
   HAL_Delay(300);
+  TxHeader.DLC   = 8;  // data length
+  TxHeader.IDE   = CAN_ID_STD;
+  TxHeader.RTR   = CAN_RTR_DATA;
+  TxHeader.StdId = 0x0A2;  // ID
 
-  TxHeader1.DLC   = 2;  // data length
-  TxHeader1.IDE   = CAN_ID_STD;
-  TxHeader1.RTR   = CAN_RTR_DATA;
-  TxHeader1.StdId = 0x012;  // ID
-
-  TxData1[0] = 100;
-  TxData1[1] = 40;
-
-  TxHeader2.DLC   = 2;  // data length
-  TxHeader2.IDE   = CAN_ID_STD;
-  TxHeader2.RTR   = CAN_RTR_DATA;
-  TxHeader2.StdId = 0x0A2;  // ID
-
-  TxData2[0] = 100;
-  TxData2[1] = 40;
-
-
-  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox) == HAL_OK){
-	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-  }
-//   if(HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox) == HAL_OK){
-//	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
-//   }
-//   HAL_Delay(100);
+    lcd_init();
+    ST7789_Init();
+    setTimer2(50);
 
   /* USER CODE END 2 */
 
@@ -175,44 +162,43 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //toggle
-	  if (datacheck1)
-	  {
-		  // blink the LED
-		  for (int i=0; i<RxData1[1]; i++)
-		  {
-			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-			  HAL_Delay(RxData1[0]);
-		  }
-		  datacheck1 = 0;
-
-			TxData1[0] = 100;   // ms Delay
-			TxData1[1] = 40;    // loop rep
-
-			HAL_CAN_AddTxMessage(&hcan1, &TxHeader1, TxData1, &TxMailbox);
+	  //LAB1 tester board
+	  /*Node 2(verification board): recive data*/
+	  if(data_flag2){
+          sprintf(&buffer1[0], "Hello = 0%02x", RxHeader.StdId);
+          sprintf(&buffer2[0], "Byte0 = 0%02x", RxData[0]);
+          sprintf(&buffer3[0], "Byte1 = 0%02x", RxData[1]);
+          sprintf(&buffer4[0], "Byte7 = 0%02x", RxData[7]);
+          ST7789_WriteString(10, 20, &buffer1[0], Font_11x18, RED, WHITE);
+          ST7789_WriteString(10, 40, &buffer2[0], Font_11x18, RED, WHITE);
+          ST7789_WriteString(10, 60, &buffer3[0], Font_11x18, RED, WHITE);
+          ST7789_WriteString(10, 80, &buffer4[0], Font_11x18, RED, WHITE);
+		  data_flag2 = 0;
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	  }
-	  HAL_Delay(100);
-	  if (datacheck2)
-	 	  {
-	 		  // blink the LED
-	 		  for (int i=0; i<RxData2[1]; i++)
-	 		  {
-	 			  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	 			  HAL_Delay(RxData2[0]);
-	 		  }
-	 		  datacheck2 = 0;
+	  /*Node 2(verification board): send data*/
+	  if(timer2_flag){
+		  setTimer2(50);
+		  if(HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) >0 ){ // check Mailbox
+			  TxData[0] = 0x02;
+			  TxData[1] = 0x12;
+			  if(HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) == HAL_OK){
+				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, SET);
+				  dataCounter++;
+				  if(dataCounter >=100){
+					  dataCounter = 0;
 
-	 			TxData2[0] = 100;   // ms Delay
-	 			TxData2[1] = 40;    // loop rep
-
-	 			HAL_CAN_AddTxMessage(&hcan2, &TxHeader2, TxData2, &TxMailbox);
-	 	  }
-
-
+			  }
+		  }
+		  else{
+			  Error_Handler();
+		  }
+	    }
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+    }
   /* USER CODE END 3 */
 }
 
@@ -294,9 +280,9 @@ static void MX_CAN1_Init(void)
     canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
     canfilterconfig.FilterBank = 4;  // which filter bank to use from the assigned ones
     canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    canfilterconfig.FilterIdHigh = 0x0A2<<5;
+    canfilterconfig.FilterIdHigh =  0x012<<5;
     canfilterconfig.FilterIdLow = 0;
-    canfilterconfig.FilterMaskIdHigh = 0x0A2<<5;
+    canfilterconfig.FilterMaskIdHigh =  0x012<<5;
     canfilterconfig.FilterMaskIdLow = 0;
     canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
     canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
@@ -308,52 +294,118 @@ static void MX_CAN1_Init(void)
 }
 
 /**
-  * @brief CAN2 Initialization Function
+  * @brief SPI1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_CAN2_Init(void)
+static void MX_SPI1_Init(void)
 {
 
-  /* USER CODE BEGIN CAN2_Init 0 */
+  /* USER CODE BEGIN SPI1_Init 0 */
 
-  /* USER CODE END CAN2_Init 0 */
+  /* USER CODE END SPI1_Init 0 */
 
-  /* USER CODE BEGIN CAN2_Init 1 */
+  /* USER CODE BEGIN SPI1_Init 1 */
 
-  /* USER CODE END CAN2_Init 1 */
-  hcan2.Instance = CAN2;
-  hcan2.Init.Prescaler = 8;
-  hcan2.Init.Mode = CAN_MODE_NORMAL;
-  hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan2.Init.TimeSeg1 = CAN_BS1_2TQ;
-  hcan2.Init.TimeSeg2 = CAN_BS2_1TQ;
-  hcan2.Init.TimeTriggeredMode = DISABLE;
-  hcan2.Init.AutoBusOff = DISABLE;
-  hcan2.Init.AutoWakeUp = DISABLE;
-  hcan2.Init.AutoRetransmission = DISABLE;
-  hcan2.Init.ReceiveFifoLocked = DISABLE;
-  hcan2.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan2) != HAL_OK)
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN CAN2_Init 2 */
-      CAN_FilterTypeDef canfilterconfig;
+  /* USER CODE BEGIN SPI1_Init 2 */
 
-      canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
-      canfilterconfig.FilterBank = 25;  // which filter bank to use from the assigned ones
-      canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO1;
-      canfilterconfig.FilterIdHigh = 0x012<<5;
-      canfilterconfig.FilterIdLow = 0;
-      canfilterconfig.FilterMaskIdHigh = 0x012<<5;
-      canfilterconfig.FilterMaskIdLow = 0;
-      canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
-      canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
-      canfilterconfig.SlaveStartFilterBank = 20;  // how many filters to assign to the CAN1 (master can)
+  /* USER CODE END SPI1_Init 2 */
 
-      HAL_CAN_ConfigFilter(&hcan2, &canfilterconfig);
-  /* USER CODE END CAN2_Init 2 */
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 15;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 9999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 9600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 
@@ -373,10 +425,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6
+                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PC13 */
   GPIO_InitStruct.Pin = GPIO_PIN_13;
@@ -384,18 +434,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  /*Configure GPIO pins : PB0 PB1 PB2 PB6
+                           PB7 PB8 PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6
+                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB0 PB1 PB2 PB3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pin : PB4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
@@ -405,7 +456,32 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint8_t calculate_crc_sae_j1850(uint8_t *data, int length){
+	 uint8_t polynomial = 0x1D; // Generator polynomial for CRC-8 SAE J1850
+	 uint8_t remainder = 0xFF;
 
+	    for (int i = 0; i < length; i++) {
+	        remainder ^= data[i];
+	        for (int bit = 0; bit < 8; bit++) {
+	            if (remainder & 0x80) {
+	                remainder = (remainder << 1) ^ polynomial;
+	            } else {
+	                remainder <<= 1;
+	            }
+	        }
+	    }
+
+	    return remainder ^ 0xFF; // Invert the bits
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+//  if(htim->Instance == TIM2){
+//		button_reading();
+//		SCH_Update();
+//	}
+	timerRun();
+
+}
 /* USER CODE END 4 */
 
 /**
